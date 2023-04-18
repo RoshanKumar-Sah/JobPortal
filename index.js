@@ -10,10 +10,12 @@ app.use(fileUpload());
 
 const auth_route = require("./route/auth")
 const jobs_route = require("./route/job")
+const applied_jobs_route = require("./route/applied_job")
 
 
 app.use("/api", auth_route)
 app.use("/api", jobs_route)
+app.use("/api", applied_jobs_route)
 
 
 app.use((req, res) => {
@@ -44,9 +46,12 @@ app.use((err, req, res, next) => {
         errors = temp
 
 
+    }else if(err.name == "CastError"){
+        status = 400
+        message = "Bad Request"
     }
 
-    res.status(status).send({ msg: message, errors })
+    res.status(status).send({ msg: message, errors, error: err.message })
 
 
 })
