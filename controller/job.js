@@ -1,4 +1,3 @@
-const { log } = require("console");
 const Job = require("../model/Job");
 const path = require("path")
 const fs = require("fs")
