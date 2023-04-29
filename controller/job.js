@@ -5,7 +5,56 @@ const fs = require("fs")
 const fetchJobs = async (req, res, next) => {
     // console.log("connected fetch jobs");
 
-    let jobs = await Job.find()
+    let per_page = parseInt(req.query.per_page) || 10
+    let page = parseInt(req.query.page) || 1
+    let search_term = req.query.search_term || ""
+    let sort_by = req.query.sort_by || ""
+
+
+    // let jobs = await Job.find()
+    // res.send(jobs)
+
+    switch (sort_by) {
+
+
+
+        case "latest":
+            sort_by = { createdAt: -1 }
+
+            break;
+        case "old":
+            sort_by = { createdAt: 1 }
+
+            break;
+        default:
+            sort_by = { title: 1 }
+            break;
+    }
+
+
+    let jobs = await Job.aggregate(
+        [
+            {
+                $match: {
+                    $or: [
+                        { title: RegExp(search_term, "i") },
+                        { category: RegExp(search_term, "i") },
+                        { job_level: RegExp(search_term, "i") },
+                        { location: RegExp(search_term, "i") }
+                    ]
+                }
+            },
+            {
+                $sort: sort_by
+            },
+            {
+                $facet: {
+                    meta_data: [{ $count: "total" }, { $addFields: { page, per_page } }],
+                    jobs: [{ $skip: ((page - 1) * per_page) }, { $limit: per_page }]
+                }
+            }
+        ]
+    )
     res.send(jobs)
 }
 
@@ -151,7 +200,7 @@ const removeJobs = async (req, res, next) => {
     try {
         let to_be_deleted = await Job.findById(req.params.id)
 
-    //    return console.log(to_be_deleted);
+        //    return console.log(to_be_deleted);
 
         if (to_be_deleted) {
             if (req.user == to_be_deleted.created_by) {

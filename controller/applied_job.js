@@ -2,9 +2,10 @@ const Applied_job = require("../model/Applied_job");
 const Job = require("../model/Job")
 const express = require("express")
 const app = express()
+const mongoose = require("mongoose")
 
 const apply_jobs = async (req, res, next) => {
-    console.log(req.params.id);
+    // console.log(req.params.id);
     try {
         const generated_date = Date.now()
         const job_id = req.params.id
@@ -43,8 +44,58 @@ const apply_jobs = async (req, res, next) => {
 const client_fetch_jobs = async (req, res, next) => {
     // console.log(req.user);
     try {
-        let applied_jobs = await Applied_job.find({ client: req.user })
+        // let applied_jobs = await Applied_job.find({ client: req.user })
+        // res.send(applied_jobs);
+
+        const reqClient = req.user;
+        const reqClientId = new mongoose.Types.ObjectId(reqClient);
+        // console.log(reqClientId);
+
+        let applied_jobs = await Applied_job.aggregate([
+            {
+                $match: {
+                    client: reqClientId
+                }
+            },
+            {
+                $lookup: {
+                    from: "jobs",
+                    localField: "job",
+                    foreignField: "_id",
+                    as: "jobDetails"
+                }
+            },
+
+            {
+                $unwind: "$jobDetails"
+            },
+            {
+                $lookup: {
+                    from: "employers",
+                    localField: "jobDetails.created_by",
+                    foreignField: "_id",
+                    as: "employerDetails"
+
+                }
+            },
+            {
+                $project: {
+                    job: "$jobDetails.title",
+                    category: "$jobDetails.category",
+                    type: "$jobDetails.type",
+                    level: "$jobDetails.job_level",
+                    applied_date: 1,
+                    employerName: "$employerDetails.name",
+                    deadline: "$jobDetails.deadline",
+                    profileImg: "$jobDetails.profile_image"
+
+                }
+            }
+
+        ])
         res.send(applied_jobs);
+
+
     } catch (err) {
         next(err)
     }
@@ -53,24 +104,76 @@ const client_fetch_jobs = async (req, res, next) => {
 }
 
 const emp_fetch_jobs = async (req, res, next) => {
-    // let jobs = await Job.find({ created_by: req.user })
-    // console.log(jobs);
-    // console.log("------------------------------------------------------------------");
-    // // let temp = Object.entries(jobs)
-    // // console.log(temp);
 
-    // let applied_jobs = await Applied_job.find()
-    // let applied_jobs_id = []
-    // for (let i = 0; i < jobs.length; i++) {
-    //     if (jobs._id == applied_jobs.job) {
-    //         await applied_jobs_id.push(applied_jobs)
-    //     }
-    // }
-
-    // console.log("Applied jobs ",applied_jobs_id);
-    res.send("fetch applied jobs")
+    try {
 
 
+        const reqEmp = req.user;
+        const reqEmpId = new mongoose.Types.ObjectId(reqEmp);
+
+
+        let applied_clients = await Applied_job.aggregate([
+
+            {
+                $lookup: {
+                    from: "jobs",
+                    localField: "job",
+                    foreignField: "_id",
+                    as: "jobDetails"
+                }
+            },
+            {
+                $lookup: {
+                    from: "clients",
+                    localField: "client",
+                    foreignField: "_id",
+                    as: "clientDetails"
+                }
+            },
+            {
+                $unwind: "$jobDetails"
+            },
+            {
+                $unwind: "$clientDetails"
+            },
+            {
+                $lookup: {
+                    from: "employers",
+                    localField: "jobDetails.created_by",
+                    foreignField: "_id",
+                    as: "employerDetails"
+
+                }
+            },
+            {
+                $unwind: "$employerDetails"
+            },
+            { $match: { "employerDetails._id": reqEmpId } },
+            {
+                $project: {
+                    job: "$jobDetails.title",
+                    category: "$jobDetails.category",
+                    type: "$jobDetails.type",
+                    level: "$jobDetails.job_level",
+                    applicantName: "$clientDetails.name",
+                    applicantEmail: "$clientDetails.email",
+                    applicantPhone: "$clientDetails.phone",
+                    applied_date: 1,
+                    employerName: "$employerDetails.name"
+
+
+                }
+            }
+
+
+
+        ])
+
+        res.send(applied_clients);
+
+    } catch (err) {
+        next(err)
+    }
 
 }
 
