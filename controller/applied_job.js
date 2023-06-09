@@ -9,7 +9,7 @@ const apply_jobs = async (req, res, next) => {
     try {
         const generated_date = Date.now()
         const job_id = req.params.id
-        const client_id = req.user
+        const client_id = req.user._id
 
 
         try {
@@ -42,12 +42,12 @@ const apply_jobs = async (req, res, next) => {
 }
 
 const client_fetch_jobs = async (req, res, next) => {
-    // console.log(req.user);
+    // console.log(req.user._id);
     try {
-        // let applied_jobs = await Applied_job.find({ client: req.user })
+        // let applied_jobs = await Applied_job.find({ client: req.user._id })
         // res.send(applied_jobs);
 
-        const reqClient = req.user;
+        const reqClient = req.user._id;
         const reqClientId = new mongoose.Types.ObjectId(reqClient);
         // console.log(reqClientId);
 
@@ -108,7 +108,7 @@ const emp_fetch_jobs = async (req, res, next) => {
     try {
 
 
-        const reqEmp = req.user;
+        const reqEmp = req.user._id;
         const reqEmpId = new mongoose.Types.ObjectId(reqEmp);
 
 

@@ -83,6 +83,9 @@ const loginClient = async (req,res,next) => {
 res.status(401).send({msg: "Invalid Credentials"})
 }
 
+
+
+
 module.exports = {
     signupEmployer,
     loginEmployer,

@@ -11,7 +11,7 @@ let checkAuthentication =(key)=>{
             try {
                 
                 let decoded_token = jwt.verify(token, key );
-                req.user = decoded_token._id
+                req.user = decoded_token
                 // console.log(req.user);
             
 

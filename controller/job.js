@@ -91,7 +91,7 @@ const postJobs = async (req, res, next) => {
             {
                 ...req.body,
                 deadline: deadline_date,
-                "created_by": req.user,
+                "created_by": req.user._id,
                 profile_image: profile_file_name,
                 cover_image: cover_file_name
             })
@@ -111,7 +111,7 @@ let updateJobs = async (req, res, next) => {
         let to_be_updated = await Job.findById(req.params.id)
 
         if (to_be_updated) {
-            if (req.user == to_be_updated.created_by) {
+            if (req.user._id == to_be_updated.created_by) {
                 // console.log(to_be_updated);
                 // return console.log(path.resolve("public/images/cover"));
 
@@ -203,7 +203,7 @@ const removeJobs = async (req, res, next) => {
         //    return console.log(to_be_deleted);
 
         if (to_be_deleted) {
-            if (req.user == to_be_deleted.created_by) {
+            if (req.user._id == to_be_deleted.created_by) {
                 try {
 
                     fs.unlinkSync(path.resolve("public/images/profile", to_be_deleted.profile_image))
