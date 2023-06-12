@@ -1,10 +1,13 @@
 const express = require("express")
 const app = express()
+const cors = require('cors')
 
 require("./config/database")
+app.use(cors())
 app.use(express.json())
 require('dotenv').config()
 const fileUpload = require("express-fileupload")
+
 
 app.use(fileUpload());
 

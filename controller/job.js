@@ -42,6 +42,38 @@ const fetchJobs = async (req, res, next) => {
                         { job_level: RegExp(search_term, "i") },
                         { location: RegExp(search_term, "i") }
                     ]
+                },
+            },
+            {
+                $lookup: {
+                    from: "employers",
+                    localField: "created_by",
+                    foreignField: "_id",
+                    as: "empDetails"
+                }
+            },
+            {
+                $unwind: "$empDetails"
+            },
+            {
+                $project: {
+                    title: "$title",
+                    category: "$category",
+                    job_level: "$job_level",
+                    offered_Salary: "$offered_salary",
+                    location: "$location",
+                    deadline: "$deadline",
+                    type: "$type",
+                    description: "$description",
+                    profile_image: "$profile_image",
+                    cover_image: "$cover_image",
+                    createdAt: "$createdAt",
+                    updatedAt:"$updatedAt",
+                    number_of_vacancy: "$number_of_vacancy",
+                    EmpName: "$empDetails.name",
+                    EmpWebsite: "$empDetails.website",
+                    EmpContact: "$empDetails.contact",
+                    EmpDescription: "$empDetails.description"
                 }
             },
             {
