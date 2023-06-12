@@ -60,7 +60,7 @@ const fetchJobs = async (req, res, next) => {
                     title: "$title",
                     category: "$category",
                     job_level: "$job_level",
-                    offered_Salary: "$offered_salary",
+                    offered_salary: "$offered_salary",
                     location: "$location",
                     deadline: "$deadline",
                     type: "$type",
