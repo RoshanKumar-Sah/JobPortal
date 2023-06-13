@@ -1,6 +1,63 @@
 const Job = require("../model/Job");
 const path = require("path")
-const fs = require("fs")
+const fs = require("fs");
+const { log } = require("console");
+const cloudinary = require('../utils/cloudinary')
+const mongoose = require("mongoose")
+
+const { ObjectID } = require('mongodb');
+const singleJob = async (req, res, next) => {
+try{
+    // let job = await Job.findById(req.params.id)
+let jobId = new  mongoose.Types.ObjectId(req.params.id)
+
+// console.log(jobId);
+    let job = await Job.aggregate([
+        { $match: { _id: jobId} },
+        {
+            $lookup: {
+                from: "employers",
+                localField: "created_by",
+                foreignField: "_id",
+                as: "empDetails"
+            }
+        },
+        {
+            $unwind: "$empDetails"
+        },
+        {
+            $project: {
+                title: "$title",
+                category: "$category",
+                job_level: "$job_level",
+                offered_salary: "$offered_salary",
+                location: "$location",
+                deadline: "$deadline",
+                type: "$type",
+                description: "$description",
+                profile_image: "$profile_image",
+                cover_image: "$cover_image",
+                createdAt: "$createdAt",
+                updatedAt: "$updatedAt",
+                number_of_vacancy: "$number_of_vacancy",
+                EmpName: "$empDetails.name",
+                EmpWebsite: "$empDetails.website",
+                EmpContact: "$empDetails.contact",
+                EmpDescription: "$empDetails.description"
+            }
+        }
+    ]
+    )
+
+    if(job){
+        res.send(job)
+    }
+
+}catch(err){
+    next(err)
+}
+}
+
 
 const fetchJobs = async (req, res, next) => {
     // console.log("connected fetch jobs");
@@ -68,7 +125,7 @@ const fetchJobs = async (req, res, next) => {
                     profile_image: "$profile_image",
                     cover_image: "$cover_image",
                     createdAt: "$createdAt",
-                    updatedAt:"$updatedAt",
+                    updatedAt: "$updatedAt",
                     number_of_vacancy: "$number_of_vacancy",
                     EmpName: "$empDetails.name",
                     EmpWebsite: "$empDetails.website",
@@ -97,15 +154,37 @@ const postJobs = async (req, res, next) => {
 
     let profile_file_name = ""
     let cover_file_name = ""
+    let uploaded_profile_img = ""
+    let profile_img_url = ""
+    let uploaded_cover_img = ""
+    let cover_img_url = ""
     try {
         profile_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.profile_image.name);
         req.files.profile_image.mv(path.join(__dirname, "../public/images/profile/") + profile_file_name);
+
+        uploaded_profile_img = await cloudinary.uploader.upload(path.join(__dirname, "../public/images/profile/" + profile_file_name), { folder: "JobPortal/Profile" })
+        profile_img_url = uploaded_profile_img.secure_url
+
+        // console.log(uploaded_profile_img);
+
+        if (profile_img_url) {
+            fs.unlinkSync(path.resolve("public/images/profile", profile_file_name))
+        }
+
     } catch (err) { }
 
     try {
         cover_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.cover_image.name);
 
         req.files.cover_image.mv(path.join(__dirname, "../public/images/cover/") + cover_file_name);
+
+        uploaded_cover_img = await cloudinary.uploader.upload(path.join(__dirname, "../public/images/cover/" + cover_file_name), { folder: "JobPortal/Cover" })
+        cover_img_url = uploaded_cover_img.secure_url
+
+        if (cover_img_url) {
+            fs.unlinkSync(path.resolve("public/images/cover", cover_file_name))
+        }
+
     } catch (err) {
 
     }
@@ -124,8 +203,8 @@ const postJobs = async (req, res, next) => {
                 ...req.body,
                 deadline: deadline_date,
                 "created_by": req.user._id,
-                profile_image: profile_file_name,
-                cover_image: cover_file_name
+                profile_image: profile_img_url,
+                cover_image: cover_img_url
             })
         res.send(job)
     } catch (err) {
@@ -137,6 +216,8 @@ const postJobs = async (req, res, next) => {
 
 
 let updateJobs = async (req, res, next) => {
+
+    // console.log(req.body.profile_image);
 
     try {
         // console.log(req.params.id);
@@ -151,62 +232,131 @@ let updateJobs = async (req, res, next) => {
                 let existing_profile_file_name = to_be_updated.profile_image
                 let existing_cover_file_name = to_be_updated.cover_image
 
+                // console.log(existing_profile_file_name);
+
                 let profile_file_name = ""
                 let cover_file_name = ""
-
-
+                let public_id = ""
+                let remove_profile_img = ""
+                let uploaded_profile_img = ""
+                let profile_img_url = ""
+                let remove_cover_img = ""
+                let uploaded_cover_img = ""
+                let cover_img_url = ""
                 try {
-                    if (req.files?.profile_image) {
-                        if (existing_profile_file_name) {
-                            if (req.files.profile_image == existing_profile_file_name) {
-                                profile_file_name = existing_profile_file_name
-                            } else {
-                                fs.unlinkSync(path.resolve("public/images/profile", existing_profile_file_name))
-                                profile_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.profile_image.name);
+                    if (!req.body.profile_image) {
 
-                                req.files.profile_image.mv(path.join(__dirname, "../public/images/profile/") + profile_file_name);
-                            }
-                        } else {
-                            profile_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.profile_image.name);
+                        const pattern = /(JobPortal[^.]+)/;
 
-                            req.files.profile_image.mv(path.join(__dirname, "../public/images/profile/") + profile_file_name);
+                        const match = existing_profile_file_name.match(pattern);
+                        // console.log(match);
+                        if (match) {
+                            public_id = match[0];
+                            // console.log(public_id);
+                            remove_profile_img = await cloudinary.uploader.destroy(public_id)
                         }
-
                     } else {
-                        fs.unlinkSync(path.resolve("public/images/profile", existing_profile_file_name))
+                        profile_img_url = existing_profile_file_name
+                    }
+
+                    if (req?.files?.profile_image) {
+                        profile_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.profile_image.name);
+                        req.files.profile_image.mv(path.join(__dirname, "../public/images/profile/") + profile_file_name);
+
+                        uploaded_profile_img = await cloudinary.uploader.upload(path.join(__dirname, "../public/images/profile/" + profile_file_name), { folder: "JobPortal/Profile" })
+                        profile_img_url = uploaded_profile_img.secure_url
+
+                        // console.log(uploaded_profile_img);
+
+                        if (profile_img_url) {
+                            fs.unlinkSync(path.resolve("public/images/profile", profile_file_name))
+                        }
+                    }
+
+                    if (!req.body.cover_image) {
+
+                        const pattern = /(JobPortal[^.]+)/;
+
+                        const match = existing_cover_file_name.match(pattern);
+                        // console.log(match);
+                        if (match) {
+                            public_id = match[0];
+                            // console.log(public_id);
+                            remove_cover_img = await cloudinary.uploader.destroy(public_id)
+                        }
+                    } else {
+                        cover_img_url = existing_cover_file_name
+                    }
+
+                    if (req?.files?.cover_image) {
+                        cover_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.cover_image.name);
+
+                        req.files.cover_image.mv(path.join(__dirname, "../public/images/cover/") + cover_file_name);
+
+                        uploaded_cover_img = await cloudinary.uploader.upload(path.join(__dirname, "../public/images/cover/" + cover_file_name), { folder: "JobPortal/Cover" })
+                        cover_img_url = uploaded_cover_img.secure_url
+
+                        if (cover_img_url) {
+                            fs.unlinkSync(path.resolve("public/images/cover", cover_file_name))
+                        }
                     }
                 } catch (err) {
 
                 }
 
 
-                try {
-                    if (req.files?.cover_image) {
-                        if (existing_cover_file_name) {
-                            if (req.files.cover_image == existing_cover_file_name) {
-                                cover_file_name = existing_cover_file_name
-                            } else {
-                                fs.unlinkSync(path.resolve("public/images/cover", existing_cover_file_name))
-                                cover_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.cover_image.name);
+                // try {
+                //     if (req.files?.profile_image) {
+                //         if (existing_profile_file_name) {
+                //             if (req.files.profile_image == existing_profile_file_name) {
+                //                 profile_file_name = existing_profile_file_name
+                //             } else {
+                //                 fs.unlinkSync(path.resolve("public/images/profile", existing_profile_file_name))
+                //                 profile_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.profile_image.name);
 
-                                req.files.cover_image.mv(path.join(__dirname, "../public/images/cover/") + cover_file_name);
-                            }
-                        } else {
-                            cover_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.cover_image.name);
+                //                 req.files.profile_image.mv(path.join(__dirname, "../public/images/profile/") + profile_file_name);
+                //             }
+                //         } else {
+                //             profile_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.profile_image.name);
 
-                            req.files.cover_image.mv(path.join(__dirname, "../public/images/cover/") + cover_file_name);
-                        }
+                //             req.files.profile_image.mv(path.join(__dirname, "../public/images/profile/") + profile_file_name);
+                //         }
 
-                    } else {
-                        fs.unlinkSync(path.resolve("public/images/cover", existing_cover_file_name))
-                    }
-                } catch (err) {
+                //     } else {
+                //         fs.unlinkSync(path.resolve("public/images/profile", existing_profile_file_name))
+                //     }
+                // } catch (err) {
 
-                }
+                // }
+
+
+                // try {
+                //     if (req.files?.cover_image) {
+                //         if (existing_cover_file_name) {
+                //             if (req.files.cover_image == existing_cover_file_name) {
+                //                 cover_file_name = existing_cover_file_name
+                //             } else {
+                //                 fs.unlinkSync(path.resolve("public/images/cover", existing_cover_file_name))
+                //                 cover_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.cover_image.name);
+
+                //                 req.files.cover_image.mv(path.join(__dirname, "../public/images/cover/") + cover_file_name);
+                //             }
+                //         } else {
+                //             cover_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.cover_image.name);
+
+                //             req.files.cover_image.mv(path.join(__dirname, "../public/images/cover/") + cover_file_name);
+                //         }
+
+                //     } else {
+                //         fs.unlinkSync(path.resolve("public/images/cover", existing_cover_file_name))
+                //     }
+                // } catch (err) {
+
+                // }
 
                 try {
                     let deadline_date = new Date(req.body.deadline)
-                    let updated_job = await Job.findByIdAndUpdate(req.params.id, { ...req.body, deadline: deadline_date, cover_image: cover_file_name, profile_image: profile_file_name }, { new: true })
+                    let updated_job = await Job.findByIdAndUpdate(req.params.id, { ...req.body, deadline: deadline_date, cover_image: cover_img_url, profile_image: profile_img_url }, { new: true })
                     return res.send(updated_job)
                 } catch (err) {
 
@@ -232,14 +382,38 @@ const removeJobs = async (req, res, next) => {
     try {
         let to_be_deleted = await Job.findById(req.params.id)
 
+
+
         //    return console.log(to_be_deleted);
 
         if (to_be_deleted) {
+            let existing_profile_file_name = to_be_deleted.profile_image
+            let existing_cover_file_name = to_be_deleted.cover_image
             if (req.user._id == to_be_deleted.created_by) {
                 try {
 
-                    fs.unlinkSync(path.resolve("public/images/profile", to_be_deleted.profile_image))
-                    fs.unlinkSync(path.resolve("public/images/cover", to_be_deleted.cover_image))
+                    let remove_profile_img =""
+                    let remove_cover_img =""
+                    
+                    const pattern = /(JobPortal[^.]+)/;
+                    
+                    const match_profile = existing_profile_file_name.match(pattern);
+                    console.log(match_profile);
+                    if (match_profile) {
+                        profile_public_id = match_profile[0];
+                        console.log(profile_public_id);
+                       remove_profile_img = await cloudinary.uploader.destroy(profile_public_id)
+                        console.log(remove_profile_img);
+                    }
+                    
+                    const match_cover = existing_cover_file_name.match(pattern);
+                    console.log(match_cover);
+                    if (match_cover) {
+                        cover_public_id = match_cover[0];
+                        console.log(cover_public_id);
+                        remove_cover_img = await cloudinary.uploader.destroy(cover_public_id)
+                        console.log(remove_cover_img);
+                    }
 
                 } catch (err) {
 
@@ -265,5 +439,6 @@ module.exports = {
     fetchJobs,
     postJobs,
     updateJobs,
-    removeJobs
+    removeJobs,
+    singleJob
 }
