@@ -6,7 +6,7 @@ return(req,res,next)=>{
     if(error){
         let errors = error.details.map(validation_error =>{
             return {
-                params: validation_error.context.key,
+                parameter: validation_error.context.key,
                 message: validation_error.message
             }
         })
