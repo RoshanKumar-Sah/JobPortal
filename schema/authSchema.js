@@ -17,9 +17,9 @@ const empSignupSchema = Joi.object({
     contact: Joi.string()
         .required(),
 
-    website: Joi.string(),
+    website: Joi.string().allow(null,''),
 
-    description: Joi.string()
+    description: Joi.string().allow(null,'')
 })
 
 const loginSchema = Joi.object({

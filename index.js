@@ -2,8 +2,10 @@ const express = require("express")
 const app = express()
 const cors = require('cors')
 
-require("./config/database")
+
 app.use(cors())
+require("./config/database")
+
 app.use(express.json())
 require('dotenv').config()
 const fileUpload = require("express-fileupload")
@@ -16,10 +18,13 @@ const jobs_route = require("./route/job")
 const applied_jobs_route = require("./route/applied_job")
 const user_route = require("./route/user")
 
+
+
 app.use("/api", auth_route)
 app.use("/api", jobs_route)
 app.use("/api", applied_jobs_route)
 app.use("/api", user_route)
+
 
 
 app.use((req, res) => {

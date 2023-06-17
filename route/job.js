@@ -6,7 +6,6 @@ const checkAuthentication = require("../middleware/checkAuthentication");
 const validateSchema = require("../middleware/validateSchema");
 const { jobSchema } = require("../schema/jobSchema");
 
-// const uploader = require("../utils/multer");
 
 
 

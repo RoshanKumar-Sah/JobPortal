@@ -6,7 +6,7 @@ const router = express.Router();
 
 
 
-router.post("/getEmployer",checkAuthentication(process.env.JWT_SECRET_KEY_EMP), getUser)
-router.post("/getClient",checkAuthentication(process.env.JWT_SECRET_KEY_CLIENT), getUser)
+router.get("/getEmployer",checkAuthentication(process.env.JWT_SECRET_KEY_EMP), getUser)
+router.get("/getClient",checkAuthentication(process.env.JWT_SECRET_KEY_CLIENT), getUser)
 
 module.exports = router
