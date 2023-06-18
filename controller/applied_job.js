@@ -24,7 +24,8 @@ const apply_jobs = async (req, res, next) => {
                 // console.log(temp);
                 let date = new Date(temp[0][1].applied_date)
 
-                return res.send(`Already applied on ${date}`)
+                // return res.send(`Already applied on ${date}`)
+                return res.send({ msg: `Already applied on ${date}` })
             }
         } catch { }
 
@@ -152,6 +153,7 @@ const emp_fetch_jobs = async (req, res, next) => {
             {
                 $project: {
                     job: "$jobDetails.title",
+                    deadline: "$jobDetails.deadline",
                     category: "$jobDetails.category",
                     type: "$jobDetails.type",
                     level: "$jobDetails.job_level",
