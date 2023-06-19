@@ -6,6 +6,8 @@ const cloudinary = require('../utils/cloudinary')
 const mongoose = require("mongoose")
 
 const { ObjectID } = require('mongodb');
+
+
 const singleJob = async (req, res, next) => {
 try{
     // let job = await Job.findById(req.params.id)
@@ -91,7 +93,8 @@ const fetchJobs = async (req, res, next) => {
 
     let jobs = await Job.aggregate(
         [
-            {
+            
+             {
                 $match: {
                     $or: [
                         { title: RegExp(search_term, "i") },
@@ -145,6 +148,106 @@ const fetchJobs = async (req, res, next) => {
         ]
     )
     res.send(jobs)
+}
+
+
+
+const employerJobs = async (req, res, next) => {
+
+try{
+
+let empId = new  mongoose.Types.ObjectId(req.user._id)
+// console.log(empId);
+
+     let per_page = parseInt(req.query.per_page) || 10
+    let page = parseInt(req.query.page) || 1
+    let search_term = req.query.search_term || ""
+    let sort_by = req.query.sort_by || ""
+
+
+    // let jobs = await Job.find()
+    // res.send(jobs)
+
+    switch (sort_by) {
+
+
+
+        case "latest":
+            sort_by = { createdAt: -1 }
+
+            break;
+        case "old":
+            sort_by = { createdAt: 1 }
+
+            break;
+        default:
+            sort_by = { title: 1 }
+            break;
+    }
+
+
+    let jobs = await Job.aggregate(
+        [
+            {
+                $match: {
+                    $and:[{ created_by: empId},{
+                    $or: [
+                        { title: RegExp(search_term, "i") },
+                        { category: RegExp(search_term, "i") },
+                        { job_level: RegExp(search_term, "i") },
+                        { location: RegExp(search_term, "i") }
+                    ]}
+                ]
+                },
+            },
+            {
+                $lookup: {
+                    from: "employers",
+                    localField: "created_by",
+                    foreignField: "_id",
+                    as: "empDetails"
+                }
+            },
+            {
+                $unwind: "$empDetails"
+            },
+            {
+                $project: {
+                    title: "$title",
+                    category: "$category",
+                    job_level: "$job_level",
+                    offered_salary: "$offered_salary",
+                    location: "$location",
+                    deadline: "$deadline",
+                    type: "$type",
+                    description: "$description",
+                    profile_image: "$profile_image",
+                    cover_image: "$cover_image",
+                    createdAt: "$createdAt",
+                    updatedAt: "$updatedAt",
+                    number_of_vacancy: "$number_of_vacancy",
+                    EmpName: "$empDetails.name",
+                    EmpWebsite: "$empDetails.website",
+                    EmpContact: "$empDetails.contact",
+                    EmpDescription: "$empDetails.description"
+                }
+            },
+            {
+                $sort: sort_by
+            },
+            {
+                $facet: {
+                    meta_data: [{ $count: "total" }, { $addFields: { page, per_page } }],
+                    jobs: [{ $skip: ((page - 1) * per_page) }, { $limit: per_page }]
+                }
+            }
+        ]
+    )
+    res.send(jobs)
+}catch(err){
+    next(err)
+}
+
 }
 
 
@@ -440,5 +543,6 @@ module.exports = {
     postJobs,
     updateJobs,
     removeJobs,
-    singleJob
+    singleJob,
+    employerJobs
 }
