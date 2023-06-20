@@ -261,7 +261,9 @@ const postJobs = async (req, res, next) => {
     let profile_img_url = ""
     let uploaded_cover_img = ""
     let cover_img_url = ""
+
     try {
+        // console.log(req.files);
         profile_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.profile_image.name);
         req.files.profile_image.mv(path.join(__dirname, "../public/images/profile/") + profile_file_name);
 
