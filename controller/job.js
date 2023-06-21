@@ -1,7 +1,7 @@
 const Job = require("../model/Job");
 const path = require("path")
 const fs = require("fs");
-const { log } = require("console");
+const { log, Console } = require("console");
 const cloudinary = require('../utils/cloudinary')
 const mongoose = require("mongoose")
 
@@ -328,6 +328,8 @@ let updateJobs = async (req, res, next) => {
         // console.log(req.params.id);
         let to_be_updated = await Job.findById(req.params.id)
 
+        // console.log(req.body);
+
         if (to_be_updated) {
             if (req.user._id == to_be_updated.created_by) {
                 // console.log(to_be_updated);
@@ -351,6 +353,8 @@ let updateJobs = async (req, res, next) => {
                 try {
                     if (!req.body.profile_image) {
 
+                        
+
                         const pattern = /(JobPortal[^.]+)/;
 
                         const match = existing_profile_file_name.match(pattern);
@@ -361,10 +365,12 @@ let updateJobs = async (req, res, next) => {
                             remove_profile_img = await cloudinary.uploader.destroy(public_id)
                         }
                     } else {
+        
                         profile_img_url = existing_profile_file_name
                     }
 
                     if (req?.files?.profile_image) {
+                        // console.log(req.files.profile_image);
                         profile_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.profile_image.name);
                         req.files.profile_image.mv(path.join(__dirname, "../public/images/profile/") + profile_file_name);
 
