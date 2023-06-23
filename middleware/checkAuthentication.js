@@ -1,29 +1,29 @@
 var jwt = require('jsonwebtoken');
 
-let checkAuthentication =(key)=>{
- return (req, res, next) => {
-    if (req.headers.authorization) {
-        let token = req.headers.authorization.split(" ")[1]
+let checkAuthentication = (key) => {
+    return (req, res, next) => {
+        if (req.headers.authorization) {
+            let token = req.headers.authorization.split(" ")[1]
 
-        // console.log(token);
+            // console.log(token);
 
-        if (token) {
-            try {
-                
-                let decoded_token = jwt.verify(token, key );
-                req.user = decoded_token
-                // console.log(req.user);
-            
+            if (token) {
+                try {
 
-                return next()
-            } catch (err) {
+                    let decoded_token = jwt.verify(token, key);
+                    req.user = decoded_token
+                    // console.log(req.user);
 
+
+                    return next()
+                } catch (err) {
+
+                }
             }
         }
-    }
-    res.status(401).send({ msg: "unauthenticated" })
+        res.status(401).send({ msg: "unauthenticated" })
 
-}
+    }
 }
 
 module.exports = checkAuthentication

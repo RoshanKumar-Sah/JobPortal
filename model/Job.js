@@ -4,7 +4,7 @@ const mongoose = require("mongoose")
 const Schema = mongoose.Schema;
 const ObjectId = Schema.ObjectId;
 
-const convertCase = (value) =>{
+const convertCase = (value) => {
     return value.toLowerCase()
 }
 
@@ -18,9 +18,9 @@ const JobSchema = new Schema({
         enum: ["frontend", "backend", "full-stack", "graphics-designer", "uiux-designer"],
         set: convertCase,
         required: true
-        
+
     },
-    job_level:{
+    job_level: {
         type: [String],
         enum: ["fresher", "junior", "mid", "senior"],
         set: convertCase,
@@ -28,8 +28,8 @@ const JobSchema = new Schema({
     },
     number_of_vacancy: {
         type: Number,
-        min:0,
-        default:0
+        min: 0,
+        default: 0
     },
     location: {
         type: String,
@@ -37,8 +37,8 @@ const JobSchema = new Schema({
     },
     offered_salary: {
         type: Number,
-        min:0,
-        default:0
+        min: 0,
+        default: 0
     },
     deadline: {
         type: Date,
@@ -70,8 +70,8 @@ const JobSchema = new Schema({
         type: String
     }
 },
-{
-timestamps: true,
-});
+    {
+        timestamps: true,
+    });
 
 module.exports = mongoose.model("Job", JobSchema)

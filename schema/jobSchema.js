@@ -4,31 +4,31 @@ Joi.objectId = require('joi-objectid')(Joi)
 const jobSchema = Joi.object({
 
     title: Joi.string()
-    .required(),
+        .required(),
 
     category: Joi.string()
-    .lowercase()
-    .valid("frontend", "backend", "full-stack", "graphics-designer", "uiux-designer")
-    .required(),
+        .lowercase()
+        .valid("frontend", "backend", "full-stack", "graphics-designer", "uiux-designer")
+        .required(),
 
     job_level: Joi.string()
-    .lowercase()
-    .valid("fresher", "junior", "mid", "senior")
-    .required(),
+        .lowercase()
+        .valid("fresher", "junior", "mid", "senior")
+        .required(),
 
     number_of_vacancy: Joi.number(),
 
     location: Joi.string()
-    .required(),
+        .required(),
 
     offered_salary: Joi.number(),
 
     deadline: Joi.date()
-    .required(),
+        .required(),
 
     type: Joi.string()
-    .lowercase()
-    .valid("top", "hot", "featured", "normal"),
+        .lowercase()
+        .valid("top", "hot", "featured", "normal"),
 
     // created_at: Joi.date()
     // .required(),
@@ -37,16 +37,16 @@ const jobSchema = Joi.object({
     // .required(),
 
     description: Joi.string()
-    .allow(""),
+        .allow(""),
 
     profile_image: Joi.string()
-    .allow(""),
+        .allow(""),
 
     cover_image: Joi.string()
-    .allow(""),
+        .allow(""),
 
 })
 
-module.exports ={
+module.exports = {
     jobSchema
 }

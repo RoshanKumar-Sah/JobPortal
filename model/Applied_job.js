@@ -7,23 +7,23 @@ const ObjectId = Schema.ObjectId;
 
 
 const Applied_JobSchema = new Schema({
-job : {
-    type: ObjectId,
-    ref: "Job",
-    required: true
-},
+    job: {
+        type: ObjectId,
+        ref: "Job",
+        required: true
+    },
 
-client: {
-    type: ObjectId,
-    ref: "Client",
-    required: true
-},
+    client: {
+        type: ObjectId,
+        ref: "Client",
+        required: true
+    },
 
-applied_date: {
-    type: Date,
-    required: true
+    applied_date: {
+        type: Date,
+        required: true
 
-}
+    }
 
 })
 

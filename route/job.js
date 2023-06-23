@@ -12,7 +12,7 @@ const { jobSchema } = require("../schema/jobSchema");
 
 router.get("/jobs", fetchJobs)
 router.get("/jobs/:id", singleJob)
-router.post("/jobs", validateSchema(jobSchema) , checkAuthentication(process.env.JWT_SECRET_KEY_EMP), postJobs)
+router.post("/jobs", validateSchema(jobSchema), checkAuthentication(process.env.JWT_SECRET_KEY_EMP), postJobs)
 router.put("/jobs/:id", validateSchema(jobSchema), checkAuthentication(process.env.JWT_SECRET_KEY_EMP), updateJobs)
 router.delete("/jobs/:id", checkAuthentication(process.env.JWT_SECRET_KEY_EMP), removeJobs)
 router.get("/empJobs", checkAuthentication(process.env.JWT_SECRET_KEY_EMP), employerJobs)

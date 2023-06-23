@@ -47,40 +47,40 @@ const loginEmployer = async (req, res, next) => {
             return res.send({ temp, token })
         }
     }
-    res.status(401).send({msg:"Invalid Credentials"})
+    res.status(401).send({ msg: "Invalid Credentials" })
 }
 
 
 const signupClient = async (req, res, next) => {
-    try{
+    try {
 
         let encrypted_password = await bcrypt.hash(req.body.password, 10);
-        
 
-        let client = await Client.create({...req.body, password:encrypted_password })
-        let temp = {...client.toObject()}
+
+        let client = await Client.create({ ...req.body, password: encrypted_password })
+        let temp = { ...client.toObject() }
         delete temp.password
         res.send(temp)
-    }catch(err){
+    } catch (err) {
         next(err)
     }
-   
+
 }
 
-const loginClient = async (req,res,next) => {
-    
-    let client = await Client.findOne({email: req.body.email})
-    if (client){
+const loginClient = async (req, res, next) => {
+
+    let client = await Client.findOne({ email: req.body.email })
+    if (client) {
         let check_password = await bcrypt.compare(req.body.password, client.password);
-        if(check_password){
-            let temp = {... client.toObject()}
+        if (check_password) {
+            let temp = { ...client.toObject() }
             delete temp.password
 
             let token = jwt.sign(temp, process.env.JWT_SECRET_KEY_CLIENT);
-            return res.send({temp, token})
+            return res.send({ temp, token })
         }
     }
-res.status(401).send({msg: "Invalid Credentials"})
+    res.status(401).send({ msg: "Invalid Credentials" })
 }
 
 

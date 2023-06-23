@@ -1,7 +1,6 @@
 const Job = require("../model/Job");
 const path = require("path")
 const fs = require("fs");
-const { log, Console } = require("console");
 const cloudinary = require('../utils/cloudinary')
 const mongoose = require("mongoose")
 
@@ -9,55 +8,55 @@ const { ObjectID } = require('mongodb');
 
 
 const singleJob = async (req, res, next) => {
-try{
-    // let job = await Job.findById(req.params.id)
-let jobId = new  mongoose.Types.ObjectId(req.params.id)
+    try {
+        // let job = await Job.findById(req.params.id)
+        let jobId = new mongoose.Types.ObjectId(req.params.id)
 
-// console.log(jobId);
-    let job = await Job.aggregate([
-        { $match: { _id: jobId} },
-        {
-            $lookup: {
-                from: "employers",
-                localField: "created_by",
-                foreignField: "_id",
-                as: "empDetails"
+        // console.log(jobId);
+        let job = await Job.aggregate([
+            { $match: { _id: jobId } },
+            {
+                $lookup: {
+                    from: "employers",
+                    localField: "created_by",
+                    foreignField: "_id",
+                    as: "empDetails"
+                }
+            },
+            {
+                $unwind: "$empDetails"
+            },
+            {
+                $project: {
+                    title: "$title",
+                    category: "$category",
+                    job_level: "$job_level",
+                    offered_salary: "$offered_salary",
+                    location: "$location",
+                    deadline: "$deadline",
+                    type: "$type",
+                    description: "$description",
+                    profile_image: "$profile_image",
+                    cover_image: "$cover_image",
+                    createdAt: "$createdAt",
+                    updatedAt: "$updatedAt",
+                    number_of_vacancy: "$number_of_vacancy",
+                    EmpName: "$empDetails.name",
+                    EmpWebsite: "$empDetails.website",
+                    EmpContact: "$empDetails.contact",
+                    EmpDescription: "$empDetails.description"
+                }
             }
-        },
-        {
-            $unwind: "$empDetails"
-        },
-        {
-            $project: {
-                title: "$title",
-                category: "$category",
-                job_level: "$job_level",
-                offered_salary: "$offered_salary",
-                location: "$location",
-                deadline: "$deadline",
-                type: "$type",
-                description: "$description",
-                profile_image: "$profile_image",
-                cover_image: "$cover_image",
-                createdAt: "$createdAt",
-                updatedAt: "$updatedAt",
-                number_of_vacancy: "$number_of_vacancy",
-                EmpName: "$empDetails.name",
-                EmpWebsite: "$empDetails.website",
-                EmpContact: "$empDetails.contact",
-                EmpDescription: "$empDetails.description"
-            }
+        ]
+        )
+
+        if (job) {
+            res.send(job)
         }
-    ]
-    )
 
-    if(job){
-        res.send(job)
+    } catch (err) {
+        next(err)
     }
-
-}catch(err){
-    next(err)
-}
 }
 
 
@@ -93,8 +92,8 @@ const fetchJobs = async (req, res, next) => {
 
     let jobs = await Job.aggregate(
         [
-            
-             {
+
+            {
                 $match: {
                     $or: [
                         { title: RegExp(search_term, "i") },
@@ -154,99 +153,100 @@ const fetchJobs = async (req, res, next) => {
 
 const employerJobs = async (req, res, next) => {
 
-try{
+    try {
 
-let empId = new  mongoose.Types.ObjectId(req.user._id)
-// console.log(empId);
+        let empId = new mongoose.Types.ObjectId(req.user._id)
+        // console.log(empId);
 
-     let per_page = parseInt(req.query.per_page) || 10
-    let page = parseInt(req.query.page) || 1
-    let search_term = req.query.search_term || ""
-    let sort_by = req.query.sort_by || ""
-
-
-    // let jobs = await Job.find()
-    // res.send(jobs)
-
-    switch (sort_by) {
+        let per_page = parseInt(req.query.per_page) || 10
+        let page = parseInt(req.query.page) || 1
+        let search_term = req.query.search_term || ""
+        let sort_by = req.query.sort_by || ""
 
 
+        // let jobs = await Job.find()
+        // res.send(jobs)
 
-        case "latest":
-            sort_by = { createdAt: -1 }
-
-            break;
-        case "old":
-            sort_by = { createdAt: 1 }
-
-            break;
-        default:
-            sort_by = { title: 1 }
-            break;
-    }
+        switch (sort_by) {
 
 
-    let jobs = await Job.aggregate(
-        [
-            {
-                $match: {
-                    $and:[{ created_by: empId},{
-                    $or: [
-                        { title: RegExp(search_term, "i") },
-                        { category: RegExp(search_term, "i") },
-                        { job_level: RegExp(search_term, "i") },
-                        { location: RegExp(search_term, "i") }
-                    ]}
-                ]
+
+            case "latest":
+                sort_by = { createdAt: -1 }
+
+                break;
+            case "old":
+                sort_by = { createdAt: 1 }
+
+                break;
+            default:
+                sort_by = { title: 1 }
+                break;
+        }
+
+
+        let jobs = await Job.aggregate(
+            [
+                {
+                    $match: {
+                        $and: [{ created_by: empId }, {
+                            $or: [
+                                { title: RegExp(search_term, "i") },
+                                { category: RegExp(search_term, "i") },
+                                { job_level: RegExp(search_term, "i") },
+                                { location: RegExp(search_term, "i") }
+                            ]
+                        }
+                        ]
+                    },
                 },
-            },
-            {
-                $lookup: {
-                    from: "employers",
-                    localField: "created_by",
-                    foreignField: "_id",
-                    as: "empDetails"
+                {
+                    $lookup: {
+                        from: "employers",
+                        localField: "created_by",
+                        foreignField: "_id",
+                        as: "empDetails"
+                    }
+                },
+                {
+                    $unwind: "$empDetails"
+                },
+                {
+                    $project: {
+                        title: "$title",
+                        category: "$category",
+                        job_level: "$job_level",
+                        offered_salary: "$offered_salary",
+                        location: "$location",
+                        deadline: "$deadline",
+                        type: "$type",
+                        description: "$description",
+                        profile_image: "$profile_image",
+                        cover_image: "$cover_image",
+                        createdAt: "$createdAt",
+                        updatedAt: "$updatedAt",
+                        number_of_vacancy: "$number_of_vacancy",
+                        EmpName: "$empDetails.name",
+                        EmpWebsite: "$empDetails.website",
+                        EmpContact: "$empDetails.contact",
+                        EmpDescription: "$empDetails.description"
+                    }
+                },
+                {
+                    $sort: sort_by
+                },
+                {
+                    $facet: {
+                        meta_data: [{ $count: "total" }, { $addFields: { page, per_page } }],
+                        jobs: [{ $skip: ((page - 1) * per_page) }, { $limit: per_page }]
+                    }
                 }
-            },
-            {
-                $unwind: "$empDetails"
-            },
-            {
-                $project: {
-                    title: "$title",
-                    category: "$category",
-                    job_level: "$job_level",
-                    offered_salary: "$offered_salary",
-                    location: "$location",
-                    deadline: "$deadline",
-                    type: "$type",
-                    description: "$description",
-                    profile_image: "$profile_image",
-                    cover_image: "$cover_image",
-                    createdAt: "$createdAt",
-                    updatedAt: "$updatedAt",
-                    number_of_vacancy: "$number_of_vacancy",
-                    EmpName: "$empDetails.name",
-                    EmpWebsite: "$empDetails.website",
-                    EmpContact: "$empDetails.contact",
-                    EmpDescription: "$empDetails.description"
-                }
-            },
-            {
-                $sort: sort_by
-            },
-            {
-                $facet: {
-                    meta_data: [{ $count: "total" }, { $addFields: { page, per_page } }],
-                    jobs: [{ $skip: ((page - 1) * per_page) }, { $limit: per_page }]
-                }
-            }
-        ]
-    )
-    res.send(jobs)
-}catch(err){
-    next(err)
-}
+            ]
+        )
+        res.send(jobs)
+    } catch (err) {
+        next(err)
+    }
 
 }
 
@@ -353,7 +353,7 @@ let updateJobs = async (req, res, next) => {
                 try {
                     if (!req.body.profile_image) {
 
-                        
+
 
                         const pattern = /(JobPortal[^.]+)/;
 
@@ -365,7 +365,7 @@ let updateJobs = async (req, res, next) => {
                             remove_profile_img = await cloudinary.uploader.destroy(public_id)
                         }
                     } else {
-        
+
                         profile_img_url = existing_profile_file_name
                     }
 
@@ -503,27 +503,27 @@ const removeJobs = async (req, res, next) => {
             if (req.user._id == to_be_deleted.created_by) {
                 try {
 
-                    let remove_profile_img =""
-                    let remove_cover_img =""
-                    
+                    let remove_profile_img = ""
+                    let remove_cover_img = ""
+
                     const pattern = /(JobPortal[^.]+)/;
-                    
+
                     const match_profile = existing_profile_file_name.match(pattern);
-                    console.log(match_profile);
+                    // console.log(match_profile);
                     if (match_profile) {
                         profile_public_id = match_profile[0];
-                        console.log(profile_public_id);
-                       remove_profile_img = await cloudinary.uploader.destroy(profile_public_id)
-                        console.log(remove_profile_img);
+                        // console.log(profile_public_id);
+                        remove_profile_img = await cloudinary.uploader.destroy(profile_public_id)
+                        // console.log(remove_profile_img);
                     }
-                    
+
                     const match_cover = existing_cover_file_name.match(pattern);
-                    console.log(match_cover);
+                    // console.log(match_cover);
                     if (match_cover) {
                         cover_public_id = match_cover[0];
-                        console.log(cover_public_id);
+                        // console.log(cover_public_id);
                         remove_cover_img = await cloudinary.uploader.destroy(cover_public_id)
-                        console.log(remove_cover_img);
+                        // console.log(remove_cover_img);
                     }
 
                 } catch (err) {
