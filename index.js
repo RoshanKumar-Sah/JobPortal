@@ -72,4 +72,4 @@ app.listen(5000, () => {
     console.log("server started");
 })
 
-module.exports = app;
+module.exports = app
