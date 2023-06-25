@@ -265,15 +265,15 @@ const postJobs = async (req, res, next) => {
     try {
         // console.log(req.files);
         profile_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.profile_image.name);
-        req.files.profile_image.mv(path.join(__dirname, "../public/images/profile/") + profile_file_name);
+        req.files.profile_image.mv(path.join(__dirname, "../assets/public/images/profile/") + profile_file_name);
 
-        uploaded_profile_img = await cloudinary.uploader.upload(path.join(__dirname, "../public/images/profile/" + profile_file_name), { folder: "JobPortal/Profile" })
+        uploaded_profile_img = await cloudinary.uploader.upload(path.join(__dirname, "../assets/public/images/profile/" + profile_file_name), { folder: "JobPortal/Profile" })
         profile_img_url = uploaded_profile_img.secure_url
 
         // console.log(uploaded_profile_img);
 
         if (profile_img_url) {
-            fs.unlinkSync(path.resolve("public/images/profile", profile_file_name))
+            fs.unlinkSync(path.resolve("assets/public/images/profile", profile_file_name))
         }
 
     } catch (err) { }
@@ -281,13 +281,13 @@ const postJobs = async (req, res, next) => {
     try {
         cover_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.cover_image.name);
 
-        req.files.cover_image.mv(path.join(__dirname, "../public/images/cover/") + cover_file_name);
+        req.files.cover_image.mv(path.join(__dirname, "../assets/public/images/cover/") + cover_file_name);
 
-        uploaded_cover_img = await cloudinary.uploader.upload(path.join(__dirname, "../public/images/cover/" + cover_file_name), { folder: "JobPortal/Cover" })
+        uploaded_cover_img = await cloudinary.uploader.upload(path.join(__dirname, "../assets/public/images/cover/" + cover_file_name), { folder: "JobPortal/Cover" })
         cover_img_url = uploaded_cover_img.secure_url
 
         if (cover_img_url) {
-            fs.unlinkSync(path.resolve("public/images/cover", cover_file_name))
+            fs.unlinkSync(path.resolve("assets/public/images/cover", cover_file_name))
         }
 
     } catch (err) {
@@ -372,15 +372,15 @@ let updateJobs = async (req, res, next) => {
                     if (req?.files?.profile_image) {
                         // console.log(req.files.profile_image);
                         profile_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.profile_image.name);
-                        req.files.profile_image.mv(path.join(__dirname, "../public/images/profile/") + profile_file_name);
+                        req.files.profile_image.mv(path.join(__dirname, "../assets/public/images/profile/") + profile_file_name);
 
-                        uploaded_profile_img = await cloudinary.uploader.upload(path.join(__dirname, "../public/images/profile/" + profile_file_name), { folder: "JobPortal/Profile" })
+                        uploaded_profile_img = await cloudinary.uploader.upload(path.join(__dirname, "../assets/public/images/profile/" + profile_file_name), { folder: "JobPortal/Profile" })
                         profile_img_url = uploaded_profile_img.secure_url
 
                         // console.log(uploaded_profile_img);
 
                         if (profile_img_url) {
-                            fs.unlinkSync(path.resolve("public/images/profile", profile_file_name))
+                            fs.unlinkSync(path.resolve("assets/public/images/profile", profile_file_name))
                         }
                     }
 
@@ -402,13 +402,13 @@ let updateJobs = async (req, res, next) => {
                     if (req?.files?.cover_image) {
                         cover_file_name = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.files.cover_image.name);
 
-                        req.files.cover_image.mv(path.join(__dirname, "../public/images/cover/") + cover_file_name);
+                        req.files.cover_image.mv(path.join(__dirname, "../assets/public/images/cover/") + cover_file_name);
 
-                        uploaded_cover_img = await cloudinary.uploader.upload(path.join(__dirname, "../public/images/cover/" + cover_file_name), { folder: "JobPortal/Cover" })
+                        uploaded_cover_img = await cloudinary.uploader.upload(path.join(__dirname, "../assets/public/images/cover/" + cover_file_name), { folder: "JobPortal/Cover" })
                         cover_img_url = uploaded_cover_img.secure_url
 
                         if (cover_img_url) {
-                            fs.unlinkSync(path.resolve("public/images/cover", cover_file_name))
+                            fs.unlinkSync(path.resolve("assets/public/images/cover", cover_file_name))
                         }
                     }
                 } catch (err) {
